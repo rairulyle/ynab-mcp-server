@@ -1,6 +1,6 @@
 {
   "name": "ynab-mcp-server",
-  "version": "0.2.4",
+  "version": "1.0.0",
   "description": "ynab-mcp-server MCP server",
   "author": "Caleb LeNoir <caleb.lenoir@hey.com>",
   "type": "module",
@@ -10,6 +10,9 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "build": "tsc && chmod +x dist/index.js",
     "prepare": "npm run build",
@@ -21,18 +24,16 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "@types/axios": "^0.14.4",
-    "axios": "^1.8.4",
-    "commander": "^14.0.1",
-    "ynab": "^2.9.0",
-    "zod": "^3.23.8"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "commander": "^15.0.0",
+    "ynab": "^4.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "^0.16.5",
-    "@types/node": "^20.11.24",
-    "@vitest/coverage-v8": "^3.2.4",
-    "typescript": "^5.3.3",
-    "vitest": "^3.2.4"
+    "@modelcontextprotocol/inspector": "^0.22.0",
+    "@types/node": "^24.13.1",
+    "@vitest/coverage-v8": "^4.1.8",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   }
 }

@@ -3,7 +3,7 @@
 # ynab-mcp-server
 [![smithery badge](https://smithery.ai/badge/@calebl/ynab-mcp-server)](https://smithery.ai/server/@calebl/ynab-mcp-server)
 
-A Model Context Protocol (MCP) server built with mcp-framework. This MCP provides tools
+A Model Context Protocol (MCP) server built with the official [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk). This MCP provides tools
 for interacting with your YNAB budgets setup at https://ynab.com
 
 <a href="https://glama.ai/mcp/servers/@calebl/ynab-mcp-server">
@@ -19,7 +19,8 @@ use with the YNAB api.
 ## Setup
 Specify env variables:
 * YNAB_API_TOKEN (required)
-* YNAB_BUDGET_ID (optional)
+* YNAB_BUDGET_ID (optional) - default budget used when a tool call doesn't specify one
+* MCP_AUTH_TOKEN (optional) - bearer token required on every request when using the HTTP transport
 
 ## Goal
 The goal of the project is to be able to interact with my YNAB budget via an AI conversation.
@@ -38,24 +39,29 @@ tool first, this prompt should happen asking you to set your default budget.
 
 ## Current state
 Available tools:
-* ListBudgets - lists available budgets on your account
-* BudgetSummary - provides a summary of categories that are underfunded and accounts that are low
-* GetUnapprovedTransactions - retrieve all unapproved transactions
-* CreateTransaction - creates a transaction for a specified budget and account.
-  * example prompt: `Add a transaction to my Ally account for $3.98 I spent at REI today`
-  * requires GetBudget to be called first so we know the account id
-* ApproveTransaction - approves an existing transaction in your YNAB budget
-  * requires a transaction ID to approve
-  * can be used in conjunction with GetUnapprovedTransactions to approve pending transactions
-  * After calling get unapproved transactions, prompt: `approve the transaction for $6.95 on the Apple Card`
 
-Next:
-* be able to approve multiple transactions with 1 call
-* updateCategory tool - or updateTransaction more general tool if I can get optional parameters to work correctly with zod & mcp framework
-* move off of mcp framework to use the model context protocol sdk directly?
-
+| Tool | Description |
+| --- | --- |
+| `ynab_list_budgets` | Lists all available budgets on your account |
+| `ynab_budget_summary` | Summary of a budget month, highlighting overspent and well-funded categories |
+| `ynab_list_accounts` | Lists all accounts in a budget |
+| `ynab_list_categories` | Lists all categories, grouped by category group |
+| `ynab_list_payees` | Lists all payees in a budget |
+| `ynab_list_months` | Lists all budget months with summary information |
+| `ynab_list_scheduled_transactions` | Lists scheduled (recurring) transactions |
+| `ynab_get_transactions` | Gets transactions with optional filters (date range, account, category, payee, approval status) |
+| `ynab_get_unapproved_transactions` | Gets unapproved transactions |
+| `ynab_create_transaction` | Creates a new transaction (e.g. `Add a transaction to my Ally account for $3.98 I spent at REI today`) |
+| `ynab_update_transaction` | Updates fields on an existing transaction |
+| `ynab_approve_transaction` | Approves a transaction (e.g. `approve the transaction for $6.95 on the Apple Card`) |
+| `ynab_bulk_approve_transactions` | Approves multiple transactions in one call |
+| `ynab_delete_transaction` | Deletes a transaction |
+| `ynab_import_transactions` | Triggers an import from linked financial institutions |
+| `ynab_update_category_budget` | Updates the budgeted amount for a category in a month |
 
 ## Quick Start
+
+Requires Node.js 24 or newer.
 
 ```bash
 # Install dependencies
@@ -92,49 +98,32 @@ create a new tool based on the readme and this openapi doc: https://api.ynab.com
 The new tool should get the details for a single budget
 ```
 
-You can add more tools using the CLI:
-
-```bash
-# Add a new tool
-mcp add tool my-tool
-
-# Example tools you might create:
-mcp add tool data-processor
-mcp add tool api-client
-mcp add tool file-handler
-```
-
 ## Tool Development
 
-Example tool structure:
+Each tool lives in `src/tools/` and exports `name`, `description`, `inputSchema` (a zod raw shape), and an `execute` function:
 
 ```typescript
-import { MCPTool } from "mcp-framework";
 import { z } from "zod";
+import * as ynab from "ynab";
+
+export const name = "my_tool";
+export const description = "Describes what your tool does";
+export const inputSchema = {
+  message: z.string().describe("Description of this input parameter"),
+};
 
 interface MyToolInput {
   message: string;
 }
 
-class MyTool extends MCPTool<MyToolInput> {
-  name = "my_tool";
-  description = "Describes what your tool does";
-
-  schema = {
-    message: {
-      type: z.string(),
-      description: "Description of this input parameter",
-    },
+export async function execute(input: MyToolInput, api: ynab.API) {
+  return {
+    content: [{ type: "text" as const, text: `Processed: ${input.message}` }],
   };
-
-  async execute(input: MyToolInput) {
-    // Your tool logic here
-    return `Processed: ${input.message}`;
-  }
 }
-
-export default MyTool;
 ```
+
+New tools are registered in `src/server.ts`.
 
 ## Publishing to npm
 

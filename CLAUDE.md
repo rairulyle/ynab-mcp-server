@@ -24,7 +24,8 @@ ALWAYS use conventional commits format (Refer to https://www.conventionalcommits
 This is a **Model Context Protocol (MCP) server** that provides AI tools for interacting with YNAB (You Need A Budget) budgets. Built with `@modelcontextprotocol/sdk`.
 
 ### Core Structure
-- **Entry Point**: `src/index.ts` - Server setup and tool registration
+- **Entry Point**: `src/index.ts` - CLI parsing and transport selection (stdio or HTTP)
+- **Server**: `src/server.ts` - Server setup and tool registration
 - **Tools**: `src/tools/*.ts` - Each tool is a separate module exporting `name`, `description`, `inputSchema`, and `execute` function
 - **Tests**: `src/tests/*.test.ts` - Vitest tests for each tool
 
@@ -35,11 +36,12 @@ Each tool in `src/tools/` exports:
 - `inputSchema`: Zod schema object for input validation
 - `execute(input, api)`: Async handler receiving input and YNAB API client
 
-Tools are registered in `src/index.ts` which passes the shared YNAB `api` instance to each handler.
+Tools are registered in `src/server.ts` which passes the shared YNAB `api` instance to each handler.
 
 ### Environment Variables
 - `YNAB_API_TOKEN` (required) - Personal Access Token from YNAB API
 - `YNAB_BUDGET_ID` (optional) - Default budget ID
+- `MCP_AUTH_TOKEN` (optional) - Bearer token for the HTTP transport
 
 ## Adding New Tools
 
@@ -78,7 +80,7 @@ export async function execute(input: MyToolInput, api: ynab.API) {
 }
 ```
 
-2. Register in `src/index.ts`:
+2. Register in `src/server.ts`:
 ```typescript
 import * as MyTool from "./tools/MyTool.js";
 

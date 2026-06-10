@@ -2,23 +2,22 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { timingSafeEqual } from "node:crypto";
 import { createServer as createNodeHttpServer } from "node:http";
-import * as ListBudgetsTool from "./tools/ListBudgetsTool.js";
-import * as GetUnapprovedTransactionsTool from "./tools/GetUnapprovedTransactionsTool.js";
-import * as BudgetSummaryTool from "./tools/BudgetSummaryTool.js";
-import * as CreateTransactionTool from "./tools/CreateTransactionTool.js";
 import * as ApproveTransactionTool from "./tools/ApproveTransactionTool.js";
+import * as BudgetSummaryTool from "./tools/BudgetSummaryTool.js";
+import * as BulkApproveTransactionsTool from "./tools/BulkApproveTransactionsTool.js";
+import * as CreateTransactionTool from "./tools/CreateTransactionTool.js";
+import * as DeleteTransactionTool from "./tools/DeleteTransactionTool.js";
+import * as GetTransactionsTool from "./tools/GetTransactionsTool.js";
+import * as GetUnapprovedTransactionsTool from "./tools/GetUnapprovedTransactionsTool.js";
+import * as ImportTransactionsTool from "./tools/ImportTransactionsTool.js";
+import * as ListAccountsTool from "./tools/ListAccountsTool.js";
+import * as ListBudgetsTool from "./tools/ListBudgetsTool.js";
+import * as ListCategoriesTool from "./tools/ListCategoriesTool.js";
+import * as ListMonthsTool from "./tools/ListMonthsTool.js";
+import * as ListPayeesTool from "./tools/ListPayeesTool.js";
+import * as ListScheduledTransactionsTool from "./tools/ListScheduledTransactionsTool.js";
 import * as UpdateCategoryBudgetTool from "./tools/UpdateCategoryBudgetTool.js";
 import * as UpdateTransactionTool from "./tools/UpdateTransactionTool.js";
-import * as BulkApproveTransactionsTool from "./tools/BulkApproveTransactionsTool.js";
-import * as ListPayeesTool from "./tools/ListPayeesTool.js";
-import * as GetTransactionsTool from "./tools/GetTransactionsTool.js";
-import * as DeleteTransactionTool from "./tools/DeleteTransactionTool.js";
-import * as ListCategoriesTool from "./tools/ListCategoriesTool.js";
-import * as ListAccountsTool from "./tools/ListAccountsTool.js";
-import * as ListScheduledTransactionsTool from "./tools/ListScheduledTransactionsTool.js";
-import * as ImportTransactionsTool from "./tools/ImportTransactionsTool.js";
-import * as ListMonthsTool from "./tools/ListMonthsTool.js";
-const SERVER_ICON = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ynab.png";
 const readOnly = { readOnlyHint: true };
 const writes = { readOnlyHint: false, destructiveHint: false };
 const destructive = { readOnlyHint: false, destructiveHint: true };
@@ -26,9 +25,15 @@ export const createServer = (api) => {
     const server = new McpServer({
         name: "ynab-mcp-server",
         title: "YNAB",
-        version: "0.2.4",
+        version: "1.0.0",
         websiteUrl: "https://github.com/rairulyle/ynab-mcp-server",
-        icons: [{ src: SERVER_ICON, mimeType: "image/png", sizes: "512x512" }],
+        icons: [
+            {
+                src: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ynab.png",
+                mimeType: "image/png",
+                sizes: ["512x512"],
+            },
+        ],
     });
     server.registerTool(ListBudgetsTool.name, {
         title: "List Budgets",
@@ -180,7 +185,10 @@ export const startHttpServer = (api, { port, host, authToken }) => new Promise((
             return;
         }
         if (req.method !== "POST") {
-            res.writeHead(405, { "Content-Type": "application/json", Allow: "POST" });
+            res.writeHead(405, {
+                "Content-Type": "application/json",
+                Allow: "POST",
+            });
             res.end(JSON.stringify({
                 jsonrpc: "2.0",
                 error: { code: -32000, message: "Method not allowed" },

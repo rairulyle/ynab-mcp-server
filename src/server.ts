@@ -4,25 +4,22 @@ import { timingSafeEqual } from "node:crypto";
 import { createServer as createNodeHttpServer, type Server } from "node:http";
 import * as ynab from "ynab";
 
-import * as ListBudgetsTool from "./tools/ListBudgetsTool.js";
-import * as GetUnapprovedTransactionsTool from "./tools/GetUnapprovedTransactionsTool.js";
-import * as BudgetSummaryTool from "./tools/BudgetSummaryTool.js";
-import * as CreateTransactionTool from "./tools/CreateTransactionTool.js";
 import * as ApproveTransactionTool from "./tools/ApproveTransactionTool.js";
+import * as BudgetSummaryTool from "./tools/BudgetSummaryTool.js";
+import * as BulkApproveTransactionsTool from "./tools/BulkApproveTransactionsTool.js";
+import * as CreateTransactionTool from "./tools/CreateTransactionTool.js";
+import * as DeleteTransactionTool from "./tools/DeleteTransactionTool.js";
+import * as GetTransactionsTool from "./tools/GetTransactionsTool.js";
+import * as GetUnapprovedTransactionsTool from "./tools/GetUnapprovedTransactionsTool.js";
+import * as ImportTransactionsTool from "./tools/ImportTransactionsTool.js";
+import * as ListAccountsTool from "./tools/ListAccountsTool.js";
+import * as ListBudgetsTool from "./tools/ListBudgetsTool.js";
+import * as ListCategoriesTool from "./tools/ListCategoriesTool.js";
+import * as ListMonthsTool from "./tools/ListMonthsTool.js";
+import * as ListPayeesTool from "./tools/ListPayeesTool.js";
+import * as ListScheduledTransactionsTool from "./tools/ListScheduledTransactionsTool.js";
 import * as UpdateCategoryBudgetTool from "./tools/UpdateCategoryBudgetTool.js";
 import * as UpdateTransactionTool from "./tools/UpdateTransactionTool.js";
-import * as BulkApproveTransactionsTool from "./tools/BulkApproveTransactionsTool.js";
-import * as ListPayeesTool from "./tools/ListPayeesTool.js";
-import * as GetTransactionsTool from "./tools/GetTransactionsTool.js";
-import * as DeleteTransactionTool from "./tools/DeleteTransactionTool.js";
-import * as ListCategoriesTool from "./tools/ListCategoriesTool.js";
-import * as ListAccountsTool from "./tools/ListAccountsTool.js";
-import * as ListScheduledTransactionsTool from "./tools/ListScheduledTransactionsTool.js";
-import * as ImportTransactionsTool from "./tools/ImportTransactionsTool.js";
-import * as ListMonthsTool from "./tools/ListMonthsTool.js";
-
-const SERVER_ICON =
-  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ynab.png";
 
 const readOnly = { readOnlyHint: true };
 const writes = { readOnlyHint: false, destructiveHint: false };
@@ -32,127 +29,200 @@ export const createServer = (api: ynab.API): McpServer => {
   const server = new McpServer({
     name: "ynab-mcp-server",
     title: "YNAB",
-    version: "0.2.4",
+    version: "1.0.0",
     websiteUrl: "https://github.com/rairulyle/ynab-mcp-server",
-    icons: [{ src: SERVER_ICON, mimeType: "image/png", sizes: "512x512" }],
+    icons: [
+      {
+        src: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ynab.png",
+        mimeType: "image/png",
+        sizes: ["512x512"],
+      },
+    ],
   });
 
-  server.registerTool(ListBudgetsTool.name, {
-    title: "List Budgets",
-    description: ListBudgetsTool.description,
-    inputSchema: ListBudgetsTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => ListBudgetsTool.execute(input, api));
+  server.registerTool(
+    ListBudgetsTool.name,
+    {
+      title: "List Budgets",
+      description: ListBudgetsTool.description,
+      inputSchema: ListBudgetsTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => ListBudgetsTool.execute(input, api),
+  );
 
-  server.registerTool(GetUnapprovedTransactionsTool.name, {
-    title: "Get Unapproved Transactions",
-    description: GetUnapprovedTransactionsTool.description,
-    inputSchema: GetUnapprovedTransactionsTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => GetUnapprovedTransactionsTool.execute(input, api));
+  server.registerTool(
+    GetUnapprovedTransactionsTool.name,
+    {
+      title: "Get Unapproved Transactions",
+      description: GetUnapprovedTransactionsTool.description,
+      inputSchema: GetUnapprovedTransactionsTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => GetUnapprovedTransactionsTool.execute(input, api),
+  );
 
-  server.registerTool(BudgetSummaryTool.name, {
-    title: "Budget Summary",
-    description: BudgetSummaryTool.description,
-    inputSchema: BudgetSummaryTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => BudgetSummaryTool.execute(input, api));
+  server.registerTool(
+    BudgetSummaryTool.name,
+    {
+      title: "Budget Summary",
+      description: BudgetSummaryTool.description,
+      inputSchema: BudgetSummaryTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => BudgetSummaryTool.execute(input, api),
+  );
 
-  server.registerTool(CreateTransactionTool.name, {
-    title: "Create Transaction",
-    description: CreateTransactionTool.description,
-    inputSchema: CreateTransactionTool.inputSchema,
-    annotations: writes,
-  }, async (input) => CreateTransactionTool.execute(input, api));
+  server.registerTool(
+    CreateTransactionTool.name,
+    {
+      title: "Create Transaction",
+      description: CreateTransactionTool.description,
+      inputSchema: CreateTransactionTool.inputSchema,
+      annotations: writes,
+    },
+    async (input) => CreateTransactionTool.execute(input, api),
+  );
 
-  server.registerTool(ApproveTransactionTool.name, {
-    title: "Approve Transaction",
-    description: ApproveTransactionTool.description,
-    inputSchema: ApproveTransactionTool.inputSchema,
-    annotations: writes,
-  }, async (input) => ApproveTransactionTool.execute(input, api));
+  server.registerTool(
+    ApproveTransactionTool.name,
+    {
+      title: "Approve Transaction",
+      description: ApproveTransactionTool.description,
+      inputSchema: ApproveTransactionTool.inputSchema,
+      annotations: writes,
+    },
+    async (input) => ApproveTransactionTool.execute(input, api),
+  );
 
-  server.registerTool(UpdateCategoryBudgetTool.name, {
-    title: "Update Category Budget",
-    description: UpdateCategoryBudgetTool.description,
-    inputSchema: UpdateCategoryBudgetTool.inputSchema,
-    annotations: writes,
-  }, async (input) => UpdateCategoryBudgetTool.execute(input, api));
+  server.registerTool(
+    UpdateCategoryBudgetTool.name,
+    {
+      title: "Update Category Budget",
+      description: UpdateCategoryBudgetTool.description,
+      inputSchema: UpdateCategoryBudgetTool.inputSchema,
+      annotations: writes,
+    },
+    async (input) => UpdateCategoryBudgetTool.execute(input, api),
+  );
 
-  server.registerTool(UpdateTransactionTool.name, {
-    title: "Update Transaction",
-    description: UpdateTransactionTool.description,
-    inputSchema: UpdateTransactionTool.inputSchema,
-    annotations: writes,
-  }, async (input) => UpdateTransactionTool.execute(input, api));
+  server.registerTool(
+    UpdateTransactionTool.name,
+    {
+      title: "Update Transaction",
+      description: UpdateTransactionTool.description,
+      inputSchema: UpdateTransactionTool.inputSchema,
+      annotations: writes,
+    },
+    async (input) => UpdateTransactionTool.execute(input, api),
+  );
 
-  server.registerTool(BulkApproveTransactionsTool.name, {
-    title: "Bulk Approve Transactions",
-    description: BulkApproveTransactionsTool.description,
-    inputSchema: BulkApproveTransactionsTool.inputSchema,
-    annotations: writes,
-  }, async (input) => BulkApproveTransactionsTool.execute(input, api));
+  server.registerTool(
+    BulkApproveTransactionsTool.name,
+    {
+      title: "Bulk Approve Transactions",
+      description: BulkApproveTransactionsTool.description,
+      inputSchema: BulkApproveTransactionsTool.inputSchema,
+      annotations: writes,
+    },
+    async (input) => BulkApproveTransactionsTool.execute(input, api),
+  );
 
-  server.registerTool(ListPayeesTool.name, {
-    title: "List Payees",
-    description: ListPayeesTool.description,
-    inputSchema: ListPayeesTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => ListPayeesTool.execute(input, api));
+  server.registerTool(
+    ListPayeesTool.name,
+    {
+      title: "List Payees",
+      description: ListPayeesTool.description,
+      inputSchema: ListPayeesTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => ListPayeesTool.execute(input, api),
+  );
 
-  server.registerTool(GetTransactionsTool.name, {
-    title: "Get Transactions",
-    description: GetTransactionsTool.description,
-    inputSchema: GetTransactionsTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => GetTransactionsTool.execute(input, api));
+  server.registerTool(
+    GetTransactionsTool.name,
+    {
+      title: "Get Transactions",
+      description: GetTransactionsTool.description,
+      inputSchema: GetTransactionsTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => GetTransactionsTool.execute(input, api),
+  );
 
-  server.registerTool(DeleteTransactionTool.name, {
-    title: "Delete Transaction",
-    description: DeleteTransactionTool.description,
-    inputSchema: DeleteTransactionTool.inputSchema,
-    annotations: destructive,
-  }, async (input) => DeleteTransactionTool.execute(input, api));
+  server.registerTool(
+    DeleteTransactionTool.name,
+    {
+      title: "Delete Transaction",
+      description: DeleteTransactionTool.description,
+      inputSchema: DeleteTransactionTool.inputSchema,
+      annotations: destructive,
+    },
+    async (input) => DeleteTransactionTool.execute(input, api),
+  );
 
-  server.registerTool(ListCategoriesTool.name, {
-    title: "List Categories",
-    description: ListCategoriesTool.description,
-    inputSchema: ListCategoriesTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => ListCategoriesTool.execute(input, api));
+  server.registerTool(
+    ListCategoriesTool.name,
+    {
+      title: "List Categories",
+      description: ListCategoriesTool.description,
+      inputSchema: ListCategoriesTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => ListCategoriesTool.execute(input, api),
+  );
 
-  server.registerTool(ListAccountsTool.name, {
-    title: "List Accounts",
-    description: ListAccountsTool.description,
-    inputSchema: ListAccountsTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => ListAccountsTool.execute(input, api));
+  server.registerTool(
+    ListAccountsTool.name,
+    {
+      title: "List Accounts",
+      description: ListAccountsTool.description,
+      inputSchema: ListAccountsTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => ListAccountsTool.execute(input, api),
+  );
 
-  server.registerTool(ListScheduledTransactionsTool.name, {
-    title: "List Scheduled Transactions",
-    description: ListScheduledTransactionsTool.description,
-    inputSchema: ListScheduledTransactionsTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => ListScheduledTransactionsTool.execute(input, api));
+  server.registerTool(
+    ListScheduledTransactionsTool.name,
+    {
+      title: "List Scheduled Transactions",
+      description: ListScheduledTransactionsTool.description,
+      inputSchema: ListScheduledTransactionsTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => ListScheduledTransactionsTool.execute(input, api),
+  );
 
-  server.registerTool(ImportTransactionsTool.name, {
-    title: "Import Transactions",
-    description: ImportTransactionsTool.description,
-    inputSchema: ImportTransactionsTool.inputSchema,
-    annotations: writes,
-  }, async (input) => ImportTransactionsTool.execute(input, api));
+  server.registerTool(
+    ImportTransactionsTool.name,
+    {
+      title: "Import Transactions",
+      description: ImportTransactionsTool.description,
+      inputSchema: ImportTransactionsTool.inputSchema,
+      annotations: writes,
+    },
+    async (input) => ImportTransactionsTool.execute(input, api),
+  );
 
-  server.registerTool(ListMonthsTool.name, {
-    title: "List Months",
-    description: ListMonthsTool.description,
-    inputSchema: ListMonthsTool.inputSchema,
-    annotations: readOnly,
-  }, async (input) => ListMonthsTool.execute(input, api));
+  server.registerTool(
+    ListMonthsTool.name,
+    {
+      title: "List Months",
+      description: ListMonthsTool.description,
+      inputSchema: ListMonthsTool.inputSchema,
+      annotations: readOnly,
+    },
+    async (input) => ListMonthsTool.execute(input, api),
+  );
 
   return server;
 };
 
-const tokenMatches = (provided: string | undefined, expected: string): boolean => {
+const tokenMatches = (
+  provided: string | undefined,
+  expected: string,
+): boolean => {
   if (!provided) return false;
   const a = Buffer.from(provided);
   const b = Buffer.from(expected);
@@ -181,7 +251,10 @@ export const startHttpServer = (
 ): Promise<Server> =>
   new Promise((resolve) => {
     const httpServer = createNodeHttpServer(async (req, res) => {
-      const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+      const url = new URL(
+        req.url ?? "/",
+        `http://${req.headers.host ?? "localhost"}`,
+      );
       const isMcpPath = url.pathname === "/mcp";
       const pathCredential = url.pathname.startsWith("/mcp/")
         ? url.pathname.slice("/mcp/".length)
@@ -189,11 +262,13 @@ export const startHttpServer = (
 
       if (!isMcpPath && pathCredential === undefined) {
         res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          jsonrpc: "2.0",
-          error: { code: -32001, message: "Not found" },
-          id: null,
-        }));
+        res.end(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            error: { code: -32001, message: "Not found" },
+            id: null,
+          }),
+        );
         return;
       }
 
@@ -204,30 +279,39 @@ export const startHttpServer = (
           (isMcpPath && tokenMatches(bearer, authToken));
         if (!authorized) {
           res.writeHead(401, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({
-            jsonrpc: "2.0",
-            error: { code: -32000, message: "Unauthorized" },
-            id: null,
-          }));
+          res.end(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              error: { code: -32000, message: "Unauthorized" },
+              id: null,
+            }),
+          );
           return;
         }
       } else if (!isMcpPath) {
         res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          jsonrpc: "2.0",
-          error: { code: -32001, message: "Not found" },
-          id: null,
-        }));
+        res.end(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            error: { code: -32001, message: "Not found" },
+            id: null,
+          }),
+        );
         return;
       }
 
       if (req.method !== "POST") {
-        res.writeHead(405, { "Content-Type": "application/json", Allow: "POST" });
-        res.end(JSON.stringify({
-          jsonrpc: "2.0",
-          error: { code: -32000, message: "Method not allowed" },
-          id: null,
-        }));
+        res.writeHead(405, {
+          "Content-Type": "application/json",
+          Allow: "POST",
+        });
+        res.end(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            error: { code: -32000, message: "Method not allowed" },
+            id: null,
+          }),
+        );
         return;
       }
 
@@ -247,11 +331,13 @@ export const startHttpServer = (
         console.error("Error handling MCP request:", error);
         if (!res.headersSent) {
           res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({
-            jsonrpc: "2.0",
-            error: { code: -32603, message: "Internal server error" },
-            id: null,
-          }));
+          res.end(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              error: { code: -32603, message: "Internal server error" },
+              id: null,
+            }),
+          );
         }
       }
     });
