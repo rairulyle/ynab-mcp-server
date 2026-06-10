@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { timingSafeEqual } from "node:crypto";
 import { createServer as createNodeHttpServer, type Server } from "node:http";
 import * as ynab from "ynab";
 
@@ -125,6 +126,24 @@ export const createServer = (api: ynab.API): McpServer => {
   return server;
 };
 
+const tokenMatches = (provided: string | undefined, expected: string): boolean => {
+  if (!provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+};
+
+export interface HttpServerOptions {
+  port: number;
+  host: string;
+  /**
+   * When set, requests must carry the token either as `Authorization: Bearer`
+   * header or as a secret path segment (`/mcp/<token>`). The path form exists
+   * for clients that cannot send custom headers, e.g. Claude custom connectors.
+   */
+  authToken?: string;
+}
+
 /**
  * Serves the MCP server over Streamable HTTP at /mcp in stateless mode:
  * each request gets a fresh server + transport pair, so no session state
@@ -132,13 +151,41 @@ export const createServer = (api: ynab.API): McpServer => {
  */
 export const startHttpServer = (
   api: ynab.API,
-  port: number,
-  host: string,
+  { port, host, authToken }: HttpServerOptions,
 ): Promise<Server> =>
   new Promise((resolve) => {
     const httpServer = createNodeHttpServer(async (req, res) => {
       const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-      if (url.pathname !== "/mcp") {
+      const isMcpPath = url.pathname === "/mcp";
+      const pathCredential = url.pathname.startsWith("/mcp/")
+        ? url.pathname.slice("/mcp/".length)
+        : undefined;
+
+      if (!isMcpPath && pathCredential === undefined) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          jsonrpc: "2.0",
+          error: { code: -32001, message: "Not found" },
+          id: null,
+        }));
+        return;
+      }
+
+      if (authToken) {
+        const bearer = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+        const authorized =
+          tokenMatches(pathCredential, authToken) ||
+          (isMcpPath && tokenMatches(bearer, authToken));
+        if (!authorized) {
+          res.writeHead(401, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({
+            jsonrpc: "2.0",
+            error: { code: -32000, message: "Unauthorized" },
+            id: null,
+          }));
+          return;
+        }
+      } else if (!isMcpPath) {
         res.writeHead(404, { "Content-Type": "application/json" });
         res.end(JSON.stringify({
           jsonrpc: "2.0",

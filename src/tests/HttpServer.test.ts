@@ -10,12 +10,26 @@ const jsonRpcHeaders = {
   Accept: "application/json, text/event-stream",
 };
 
+const initializeBody = JSON.stringify({
+  jsonrpc: "2.0",
+  id: 1,
+  method: "initialize",
+  params: {
+    protocolVersion: "2025-03-26",
+    capabilities: {},
+    clientInfo: { name: "test-client", version: "0.0.0" },
+  },
+});
+
 describe("http transport", () => {
   let server: Server;
   let baseUrl: string;
 
   beforeAll(async () => {
-    server = await startHttpServer(new ynab.API("test-token"), 0, "127.0.0.1");
+    server = await startHttpServer(new ynab.API("test-token"), {
+      port: 0,
+      host: "127.0.0.1",
+    });
     const { port } = server.address() as AddressInfo;
     baseUrl = `http://127.0.0.1:${port}`;
   });
@@ -26,16 +40,7 @@ describe("http transport", () => {
     const res = await fetch(`${baseUrl}/mcp`, {
       method: "POST",
       headers: jsonRpcHeaders,
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: {
-          protocolVersion: "2025-03-26",
-          capabilities: {},
-          clientInfo: { name: "test-client", version: "0.0.0" },
-        },
-      }),
+      body: initializeBody,
     });
 
     expect(res.status).toBe(200);
@@ -72,5 +77,81 @@ describe("http transport", () => {
     });
 
     expect(res.status).toBe(404);
+  });
+});
+
+describe("http transport with auth token", () => {
+  const authToken = "test-secret-token";
+  let server: Server;
+  let baseUrl: string;
+
+  beforeAll(async () => {
+    server = await startHttpServer(new ynab.API("test-token"), {
+      port: 0,
+      host: "127.0.0.1",
+      authToken,
+    });
+    const { port } = server.address() as AddressInfo;
+    baseUrl = `http://127.0.0.1:${port}`;
+  });
+
+  afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
+
+  it("rejects requests without credentials", async () => {
+    const res = await fetch(`${baseUrl}/mcp`, {
+      method: "POST",
+      headers: jsonRpcHeaders,
+      body: initializeBody,
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("accepts a valid bearer token", async () => {
+    const res = await fetch(`${baseUrl}/mcp`, {
+      method: "POST",
+      headers: { ...jsonRpcHeaders, Authorization: `Bearer ${authToken}` },
+      body: initializeBody,
+    });
+
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects an invalid bearer token", async () => {
+    const res = await fetch(`${baseUrl}/mcp`, {
+      method: "POST",
+      headers: { ...jsonRpcHeaders, Authorization: "Bearer wrong-token" },
+      body: initializeBody,
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("accepts the token as a secret path segment", async () => {
+    const res = await fetch(`${baseUrl}/mcp/${authToken}`, {
+      method: "POST",
+      headers: jsonRpcHeaders,
+      body: initializeBody,
+    });
+
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects a wrong secret path segment", async () => {
+    const res = await fetch(`${baseUrl}/mcp/wrong-token`, {
+      method: "POST",
+      headers: jsonRpcHeaders,
+      body: initializeBody,
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("still rejects non-POST methods after auth", async () => {
+    const res = await fetch(`${baseUrl}/mcp/${authToken}`, {
+      headers: { Accept: "text/event-stream" },
+    });
+
+    expect(res.status).toBe(405);
   });
 });

@@ -12,8 +12,9 @@ const main = async () => {
     const { transport, port, host } = program.parse().opts();
     const api = new ynab.API(process.env.YNAB_API_TOKEN || "");
     if (transport === "http") {
-        await startHttpServer(api, Number(port), host);
-        console.error(`YNAB MCP server running at http://${host}:${port}/mcp`);
+        const authToken = process.env.MCP_AUTH_TOKEN || undefined;
+        await startHttpServer(api, { port: Number(port), host, authToken });
+        console.error(`YNAB MCP server running at http://${host}:${port}/mcp (auth ${authToken ? "enabled" : "disabled"})`);
         return;
     }
     const server = createServer(api);

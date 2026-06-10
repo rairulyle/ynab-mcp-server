@@ -175,6 +175,15 @@ The server supports two transports:
 
 In HTTP mode the MCP endpoint is served at `http://<host>:<port>/mcp`.
 
+### Authentication (HTTP mode)
+
+Set `MCP_AUTH_TOKEN` to require a credential on every request (generate one with `openssl rand -hex 32`). Clients can present it two ways:
+
+- `Authorization: Bearer <token>` header — for clients that support headers (Claude Code, mcp-remote, MCP Inspector)
+- Secret path: `https://your-domain/mcp/<token>` — for clients that can't send custom headers (Claude custom connectors)
+
+Without `MCP_AUTH_TOKEN` the endpoint is open; only run it that way on localhost or a private network.
+
 ## Running with Docker
 
 ### Using the prebuilt image (GHCR)
@@ -216,13 +225,13 @@ You should get back a JSON list of the 16 `ynab_*` tools. For an interactive UI,
 
 Claude's custom connectors (Settings → Connectors → Add custom connector) are connected **from Anthropic's servers**, not from your machine — so the URL must be publicly reachable over HTTPS. `http://localhost:3000/mcp` will not work there.
 
-The intended setup is to run the Docker container on a server behind a reverse proxy (Caddy, nginx, Traefik, Cloudflare Tunnel, …) that terminates TLS on your own domain, then add the connector with:
+The intended setup is to run the Docker container on a server behind a reverse proxy (Caddy, nginx, Traefik, Cloudflare Tunnel, …) that terminates TLS on your own domain, with `MCP_AUTH_TOKEN` set on the container. Since the connector dialog can't send headers, embed the token in the URL:
 
 ```
-https://ynab.your-domain.com/mcp
+https://ynab.your-domain.com/mcp/<your-MCP_AUTH_TOKEN>
 ```
 
-> **Security warning:** the HTTP endpoint has **no authentication** — anyone who can reach it can read and modify your budgets. Do not expose it on a public domain without protection (VPN/Tailscale-only hostname, IP allowlist, or an auth layer on the proxy).
+> **Security warning:** never expose the endpoint on a public domain without `MCP_AUTH_TOKEN` — anyone who can reach an unauthenticated endpoint can read and modify your budgets. Treat the tokenized URL itself as a secret.
 
 ### Claude Desktop (local stdio)
 
