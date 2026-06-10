@@ -14,12 +14,12 @@ COPY . .
 # Build the project
 RUN npm run build
 
-# Expose any port if required (not strictly necessary for stdio based MCP)
+EXPOSE 3000
 
 # Set environment variable placeholder (user should override these values in production)
 ENV YNAB_API_TOKEN=""
 # optional:
 # ENV YNAB_BUDGET_ID=""
 
-# Define the command to run your app using node
-CMD ["node", "dist/index.js"]
+# Streamable HTTP endpoint at /mcp; pass no args (or override CMD) for stdio mode
+CMD ["node", "dist/index.js", "--transport", "http", "--host", "0.0.0.0", "--port", "3000"]
