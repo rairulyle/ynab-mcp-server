@@ -86,7 +86,7 @@ describe("http transport", () => {
 
     const { serverInfo } = (await res.json()).result;
     expect(serverInfo.title).toBe("YNAB");
-    expect(serverInfo.icons[0].src).toMatch(/^data:image\/svg\+xml;base64,/);
+    expect(serverInfo.icons[0].src).toMatch(/^https:\/\/.+ynab\.png$/);
   });
 
   it("rejects non-POST requests with 405 instead of holding an SSE stream open", async () => {

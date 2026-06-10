@@ -18,8 +18,7 @@ import * as ListAccountsTool from "./tools/ListAccountsTool.js";
 import * as ListScheduledTransactionsTool from "./tools/ListScheduledTransactionsTool.js";
 import * as ImportTransactionsTool from "./tools/ImportTransactionsTool.js";
 import * as ListMonthsTool from "./tools/ListMonthsTool.js";
-/** Blue rounded square with a white dollar sign. */
-const SERVER_ICON = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMyNTYzZWIiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJBcmlhbCxIZWx2ZXRpY2Esc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPiQ8L3RleHQ+PC9zdmc+";
+const SERVER_ICON = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ynab.png";
 const readOnly = { readOnlyHint: true };
 const writes = { readOnlyHint: false, destructiveHint: false };
 const destructive = { readOnlyHint: false, destructiveHint: true };
@@ -27,9 +26,9 @@ export const createServer = (api) => {
     const server = new McpServer({
         name: "ynab-mcp-server",
         title: "YNAB",
-        version: "0.2.3",
+        version: "0.2.4",
         websiteUrl: "https://github.com/rairulyle/ynab-mcp-server",
-        icons: [{ src: SERVER_ICON, mimeType: "image/svg+xml", sizes: "any" }],
+        icons: [{ src: SERVER_ICON, mimeType: "image/png", sizes: "512x512" }],
     });
     server.registerTool(ListBudgetsTool.name, {
         title: "List Budgets",
