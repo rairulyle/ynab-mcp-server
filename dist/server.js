@@ -27,7 +27,7 @@ export const createServer = (api) => {
     const server = new McpServer({
         name: "ynab-mcp-server",
         title: "YNAB",
-        version: "0.2.2",
+        version: "0.2.3",
         websiteUrl: "https://github.com/rairulyle/ynab-mcp-server",
         icons: [{ src: SERVER_ICON, mimeType: "image/svg+xml", sizes: "any" }],
     });
