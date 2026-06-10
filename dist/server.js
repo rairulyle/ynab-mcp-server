@@ -20,7 +20,7 @@ import * as ListMonthsTool from "./tools/ListMonthsTool.js";
 export const createServer = (api) => {
     const server = new McpServer({
         name: "ynab-mcp-server",
-        version: "0.2.0",
+        version: "0.2.1",
     });
     server.registerTool(ListBudgetsTool.name, {
         title: "List Budgets",
