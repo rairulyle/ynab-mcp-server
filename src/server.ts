@@ -21,106 +21,133 @@ import * as ListScheduledTransactionsTool from "./tools/ListScheduledTransaction
 import * as ImportTransactionsTool from "./tools/ImportTransactionsTool.js";
 import * as ListMonthsTool from "./tools/ListMonthsTool.js";
 
+/** Blue rounded square with a white dollar sign. */
+const SERVER_ICON =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMyNTYzZWIiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJBcmlhbCxIZWx2ZXRpY2Esc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPiQ8L3RleHQ+PC9zdmc+";
+
+const readOnly = { readOnlyHint: true };
+const writes = { readOnlyHint: false, destructiveHint: false };
+const destructive = { readOnlyHint: false, destructiveHint: true };
+
 export const createServer = (api: ynab.API): McpServer => {
   const server = new McpServer({
     name: "ynab-mcp-server",
+    title: "YNAB",
     version: "0.2.2",
+    websiteUrl: "https://github.com/rairulyle/ynab-mcp-server",
+    icons: [{ src: SERVER_ICON, mimeType: "image/svg+xml", sizes: "any" }],
   });
 
   server.registerTool(ListBudgetsTool.name, {
     title: "List Budgets",
     description: ListBudgetsTool.description,
     inputSchema: ListBudgetsTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => ListBudgetsTool.execute(input, api));
 
   server.registerTool(GetUnapprovedTransactionsTool.name, {
     title: "Get Unapproved Transactions",
     description: GetUnapprovedTransactionsTool.description,
     inputSchema: GetUnapprovedTransactionsTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => GetUnapprovedTransactionsTool.execute(input, api));
 
   server.registerTool(BudgetSummaryTool.name, {
     title: "Budget Summary",
     description: BudgetSummaryTool.description,
     inputSchema: BudgetSummaryTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => BudgetSummaryTool.execute(input, api));
 
   server.registerTool(CreateTransactionTool.name, {
     title: "Create Transaction",
     description: CreateTransactionTool.description,
     inputSchema: CreateTransactionTool.inputSchema,
+    annotations: writes,
   }, async (input) => CreateTransactionTool.execute(input, api));
 
   server.registerTool(ApproveTransactionTool.name, {
     title: "Approve Transaction",
     description: ApproveTransactionTool.description,
     inputSchema: ApproveTransactionTool.inputSchema,
+    annotations: writes,
   }, async (input) => ApproveTransactionTool.execute(input, api));
 
   server.registerTool(UpdateCategoryBudgetTool.name, {
     title: "Update Category Budget",
     description: UpdateCategoryBudgetTool.description,
     inputSchema: UpdateCategoryBudgetTool.inputSchema,
+    annotations: writes,
   }, async (input) => UpdateCategoryBudgetTool.execute(input, api));
 
   server.registerTool(UpdateTransactionTool.name, {
     title: "Update Transaction",
     description: UpdateTransactionTool.description,
     inputSchema: UpdateTransactionTool.inputSchema,
+    annotations: writes,
   }, async (input) => UpdateTransactionTool.execute(input, api));
 
   server.registerTool(BulkApproveTransactionsTool.name, {
     title: "Bulk Approve Transactions",
     description: BulkApproveTransactionsTool.description,
     inputSchema: BulkApproveTransactionsTool.inputSchema,
+    annotations: writes,
   }, async (input) => BulkApproveTransactionsTool.execute(input, api));
 
   server.registerTool(ListPayeesTool.name, {
     title: "List Payees",
     description: ListPayeesTool.description,
     inputSchema: ListPayeesTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => ListPayeesTool.execute(input, api));
 
   server.registerTool(GetTransactionsTool.name, {
     title: "Get Transactions",
     description: GetTransactionsTool.description,
     inputSchema: GetTransactionsTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => GetTransactionsTool.execute(input, api));
 
   server.registerTool(DeleteTransactionTool.name, {
     title: "Delete Transaction",
     description: DeleteTransactionTool.description,
     inputSchema: DeleteTransactionTool.inputSchema,
+    annotations: destructive,
   }, async (input) => DeleteTransactionTool.execute(input, api));
 
   server.registerTool(ListCategoriesTool.name, {
     title: "List Categories",
     description: ListCategoriesTool.description,
     inputSchema: ListCategoriesTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => ListCategoriesTool.execute(input, api));
 
   server.registerTool(ListAccountsTool.name, {
     title: "List Accounts",
     description: ListAccountsTool.description,
     inputSchema: ListAccountsTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => ListAccountsTool.execute(input, api));
 
   server.registerTool(ListScheduledTransactionsTool.name, {
     title: "List Scheduled Transactions",
     description: ListScheduledTransactionsTool.description,
     inputSchema: ListScheduledTransactionsTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => ListScheduledTransactionsTool.execute(input, api));
 
   server.registerTool(ImportTransactionsTool.name, {
     title: "Import Transactions",
     description: ImportTransactionsTool.description,
     inputSchema: ImportTransactionsTool.inputSchema,
+    annotations: writes,
   }, async (input) => ImportTransactionsTool.execute(input, api));
 
   server.registerTool(ListMonthsTool.name, {
     title: "List Months",
     description: ListMonthsTool.description,
     inputSchema: ListMonthsTool.inputSchema,
+    annotations: readOnly,
   }, async (input) => ListMonthsTool.execute(input, api));
 
   return server;
