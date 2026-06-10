@@ -164,6 +164,107 @@ export default MyTool;
 After publishing, users can add it to their claude desktop client (read below) or run it with npx
 
 
+## Transports
+
+The server supports two transports:
+
+| Transport | Command | Use case |
+|---|---|---|
+| stdio (default) | `node dist/index.js` | Local clients that spawn the process (Claude Desktop config, Claude Code) |
+| Streamable HTTP | `node dist/index.js --transport http [--port 3000] [--host 127.0.0.1]` | Running as a service (Docker) and connecting by URL |
+
+In HTTP mode the MCP endpoint is served at `http://<host>:<port>/mcp`.
+
+## Running with Docker
+
+### Using the prebuilt image (GHCR)
+
+Images are published automatically to GHCR on every release/`v*` tag (multi-arch: amd64 + arm64):
+
+```bash
+docker run -d \
+  --name ynab-mcp \
+  -e YNAB_API_TOKEN=your-ynab-token \
+  -p 3000:3000 \
+  --restart unless-stopped \
+  ghcr.io/rairulyle/ynab-mcp-server:latest
+```
+
+### Building locally
+
+```bash
+docker build -t ynab-mcp-server .
+docker run -d --name ynab-mcp --env-file .env -p 3000:3000 --restart unless-stopped ynab-mcp-server
+```
+
+(`.env` needs `YNAB_API_TOKEN=...`; optionally `YNAB_BUDGET_ID=...`.)
+
+### Verifying it works
+
+```bash
+curl -s -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+You should get back a JSON list of the 16 `ynab_*` tools. For an interactive UI, run `npx @modelcontextprotocol/inspector` and connect to `http://localhost:3000/mcp` with transport "Streamable HTTP".
+
+## Connecting to agents
+
+### Claude Desktop (custom connector, HTTP)
+
+Claude's custom connectors (Settings → Connectors → Add custom connector) are connected **from Anthropic's servers**, not from your machine — so the URL must be publicly reachable over HTTPS. `http://localhost:3000/mcp` will not work there.
+
+The intended setup is to run the Docker container on a server behind a reverse proxy (Caddy, nginx, Traefik, Cloudflare Tunnel, …) that terminates TLS on your own domain, then add the connector with:
+
+```
+https://ynab.your-domain.com/mcp
+```
+
+> **Security warning:** the HTTP endpoint has **no authentication** — anyone who can reach it can read and modify your budgets. Do not expose it on a public domain without protection (VPN/Tailscale-only hostname, IP allowlist, or an auth layer on the proxy).
+
+### Claude Desktop (local stdio)
+
+If Claude Desktop runs on the same machine, skip HTTP entirely and let it spawn the server over stdio via `claude_desktop_config.json`:
+
+**MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "ynab": {
+      "command": "node",
+      "args": ["/absolute/path/to/ynab-mcp-server/dist/index.js"],
+      "env": { "YNAB_API_TOKEN": "your-ynab-token" }
+    }
+  }
+}
+```
+
+**Windows + WSL:** Claude Desktop on Windows can run the server inside WSL by bridging stdio through `wsl.exe`:
+
+```json
+{
+  "mcpServers": {
+    "ynab": {
+      "command": "wsl.exe",
+      "args": [
+        "bash", "-c",
+        "YNAB_API_TOKEN=your-ynab-token exec node /home/you/ynab-mcp-server/dist/index.js"
+      ]
+    }
+  }
+}
+```
+
+### Claude Code (CLI)
+
+```bash
+claude mcp add ynab --env YNAB_API_TOKEN=your-ynab-token -- node /absolute/path/to/ynab-mcp-server/dist/index.js
+```
+
 ## Using with Claude Desktop
 
 ### Installing via Smithery
@@ -174,37 +275,17 @@ To install YNAB Budget Assistant for Claude Desktop automatically via [Smithery]
 npx -y @smithery/cli install @calebl/ynab-mcp-server --client claude
 ```
 
-### Local Development
-
-Add this configuration to your Claude Desktop config file:
-
-**MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "ynab-mcp-server": {
-      "command": "node",
-      "args":["/absolute/path/to/ynab-mcp-server/dist/index.js"]
-    }
-  }
-}
-```
-
 ### After Publishing
 
-Add this configuration to your Claude Desktop config file:
-
-**MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+Once published to npm, the stdio config can use `npx` instead of a local path:
 
 ```json
 {
   "mcpServers": {
-    "ynab-mcp-server": {
+    "ynab": {
       "command": "npx",
-      "args": ["ynab-mcp-server"]
+      "args": ["ynab-mcp-server"],
+      "env": { "YNAB_API_TOKEN": "your-ynab-token" }
     }
   }
 }
