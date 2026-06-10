@@ -55,6 +55,15 @@ describe("http transport", () => {
     expect(body.result.tools.length).toBeGreaterThan(0);
   });
 
+  it("rejects non-POST requests with 405 instead of holding an SSE stream open", async () => {
+    const res = await fetch(`${baseUrl}/mcp`, {
+      headers: { Accept: "text/event-stream" },
+    });
+
+    expect(res.status).toBe(405);
+    expect(res.headers.get("allow")).toBe("POST");
+  });
+
   it("returns 404 for unknown paths", async () => {
     const res = await fetch(`${baseUrl}/other`, {
       method: "POST",
