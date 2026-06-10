@@ -60,6 +60,35 @@ describe("http transport", () => {
     expect(body.result.tools.length).toBeGreaterThan(0);
   });
 
+  it("annotates tools with read-only and destructive hints", async () => {
+    const res = await fetch(`${baseUrl}/mcp`, {
+      method: "POST",
+      headers: jsonRpcHeaders,
+      body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/list" }),
+    });
+
+    const { tools } = (await res.json()).result;
+    const byName = Object.fromEntries(tools.map((t: any) => [t.name, t]));
+    expect(byName.ynab_list_budgets.annotations.readOnlyHint).toBe(true);
+    expect(byName.ynab_create_transaction.annotations).toEqual({
+      readOnlyHint: false,
+      destructiveHint: false,
+    });
+    expect(byName.ynab_delete_transaction.annotations.destructiveHint).toBe(true);
+  });
+
+  it("advertises a server icon", async () => {
+    const res = await fetch(`${baseUrl}/mcp`, {
+      method: "POST",
+      headers: jsonRpcHeaders,
+      body: initializeBody,
+    });
+
+    const { serverInfo } = (await res.json()).result;
+    expect(serverInfo.title).toBe("YNAB");
+    expect(serverInfo.icons[0].src).toMatch(/^data:image\/svg\+xml;base64,/);
+  });
+
   it("rejects non-POST requests with 405 instead of holding an SSE stream open", async () => {
     const res = await fetch(`${baseUrl}/mcp`, {
       headers: { Accept: "text/event-stream" },
