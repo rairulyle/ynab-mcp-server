@@ -121,6 +121,15 @@ export const startHttpServer = (api, port, host) => new Promise((resolve) => {
             }));
             return;
         }
+        if (req.method !== "POST") {
+            res.writeHead(405, { "Content-Type": "application/json", Allow: "POST" });
+            res.end(JSON.stringify({
+                jsonrpc: "2.0",
+                error: { code: -32000, message: "Method not allowed" },
+                id: null,
+            }));
+            return;
+        }
         try {
             const server = createServer(api);
             const transport = new StreamableHTTPServerTransport({
